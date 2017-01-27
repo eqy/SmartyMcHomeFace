@@ -10,12 +10,15 @@ import temp
 import cgi
 import relay
 
+CONST_REFRESH_INTERVAL = 1800.0
+
 REQUEST_COUNT = 0
 T_STATE_LOCK = threading.Lock()
 T_VAL = -42.0
 T_DATE = "OUTATIME"
 T_TARGET = 0.0
 T_GTARGET = 0.0
+T_ON_TIME = 0.0
 T_STATE = "OFF"
 
 def heat_on():
@@ -50,7 +53,9 @@ def thermostat_task():
         val = temp.read_temp()[1]
         gtarget = get_gtarget() 
         T_STATE_LOCK.acquire()
-        print("bro count: {0:d}".format(REQUEST_COUNT))
+        global T_ON_TIME
+        print("visit count: {0:d}".format(REQUEST_COUNT))
+        print("last on: {0:f}".format(T_ON_TIME))
         global T_VAL
         global T_DATE
         global T_STATE
@@ -61,9 +66,13 @@ def thermostat_task():
         if T_STATE == "OFF" and (T_VAL < T_TARGET or T_VAL < T_GTARGET):
             heat_on()
             T_STATE = "ON"
+            T_ON_TIME = time.time()
         elif T_STATE == "ON" and\
        (T_VAL <= T_TARGET + 1 or T_VAL < T_GTARGET + 1):
-            pass
+            #refresh to prevent heater from shutting down
+            if T_ON_TIME < time.time() - CONST_REFRESH_INTERVAL:
+                heat_off()
+                heat_on()
         else:
             heat_off()
             T_STATE = "OFF"
