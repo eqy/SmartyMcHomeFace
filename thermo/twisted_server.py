@@ -53,6 +53,7 @@ def thermostat_task():
         val = temp.read_temp()[1]
         gtarget = get_gtarget() 
         T_STATE_LOCK.acquire()
+        global REQUEST_COUNT
         global T_ON_TIME
         print("visit count: {0:d}".format(REQUEST_COUNT))
         print("last on: {0:f}".format(T_ON_TIME))
@@ -74,6 +75,7 @@ def thermostat_task():
                 heat_off()
                 time.sleep(0.05)
                 heat_on()
+                T_ON_TIME = time.time()
         else:
             heat_off()
             T_STATE = "OFF"
