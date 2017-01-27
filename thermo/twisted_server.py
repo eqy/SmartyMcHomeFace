@@ -72,6 +72,7 @@ def thermostat_task():
             #refresh to prevent heater from shutting down
             if T_ON_TIME < time.time() - CONST_REFRESH_INTERVAL:
                 heat_off()
+                time.sleep(0.05)
                 heat_on()
         else:
             heat_off()
